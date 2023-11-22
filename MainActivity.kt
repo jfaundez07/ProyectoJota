@@ -5,8 +5,10 @@ import android.os.Bundle
 
 import android.widget.Button
 import android.widget.TextView
+import com.google.gson.Gson
 import okhttp3.*
 import java.io.IOException
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,10 +44,40 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call, response: Response) {
                 val jsonData = response.body?.string()
-                runOnUiThread {
-                    tvResultado.text = jsonData
+
+                if (jsonData!= null) {
+                    val gson = Gson()
+                    val datosSensores = gson.fromJson(jsonData, DatosSensores::class.java)
+
+
+                    val resultadoFormateado =   " Ultima lectura obtenida: \n" +
+                                                "\n"+
+                                                "-> Temperatura:   ${datosSensores.Temperatura} °C\n" +
+                                                "-> Humedad:        ${datosSensores.Humedad} %\n" +
+                                                "-> PM25:               ${datosSensores.PM25} [ug/m3]\n" +
+                                                "-> PM10:               ${datosSensores.PM10} [ug/m3]"
+
+                    runOnUiThread {
+                        tvResultado.text = resultadoFormateado
+                    }
+
+                } else {
+                    runOnUiThread {
+                        tvResultado.text = "Error al analizar la respuesta del servidor"
+                    }
                 }
+
+
+
+
             }
         })
     }
+
+    data class DatosSensores(
+        val Temperatura: Double?,
+        val Humedad: Double?,
+        val PM25: Int?,
+        val PM10: Int?
+    )
 }
